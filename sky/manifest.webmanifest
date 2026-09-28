@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "頭頂星空",
+  "short_name": "頭頂星空",
+  "description": "依你的位置即時顯示頭頂的星空、行星、銀河與 88 星座，點選就有中文介紹。",
+  "lang": "zh-TW",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080C1F",
+  "theme_color": "#080C1F",
+  "categories": ["education", "navigation"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
