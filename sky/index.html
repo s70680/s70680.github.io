@@ -1859,6 +1859,7 @@ function fmtRA(ra) { const h = ra / 15, hh = Math.floor(h), mm = Math.round((h -
 function fmtDec(dec) { const s = dec < 0 ? '−' : '+', a = Math.abs(dec), d = Math.floor(a), m = Math.round((a - d) * 60); return s + (m === 60 ? d + 1 : d) + '° ' + pad(m % 60) + '′'; }
 
 // ---------------------------------------------------------------- info cards
+const centerBtn = () => '<div class="actions"><button class="btn primary" data-act="center">' + (sensor.on ? '帶我找到它' : '在星空中置中') + '</button></div>';
 function statusHTML(hor, extra) {
   const { alt, az } = altAz(hor);
   let pill;
@@ -1907,7 +1908,7 @@ function conHTML(c) {
   h += '<div class="tags">' + tags.join('') + '</div>';
   h += '<h3 class="sec">神話與由來</h3><p class="prose">' + esc(inf.story) + '</p>';
   h += '<h3 class="sec">怎麼看</h3><p class="prose">' + esc(inf.look) + '</p>';
-  h += '<div class="actions"><button class="btn primary" data-act="center">在星空中置中</button></div>';
+  h += centerBtn();
   return h;
 }
 function starHTML(i) {
@@ -1932,7 +1933,7 @@ function starHTML(i) {
   h += '<dt>赤經 / 赤緯</dt><dd class="mono">' + fmtRA(ra) + ' / ' + fmtDec(dec) + '</dd>';
   h += '</dl>';
   if (pop && pop.note) h += '<p class="prose">' + esc(pop.note) + '</p>';
-  h += '<div class="actions"><button class="btn primary" data-act="center">在星空中置中</button></div>';
+  h += centerBtn();
   return h;
 }
 function moonPhaseName(p) {
@@ -1962,7 +1963,7 @@ function bodyHTML(id) {
   if (id !== 'Sun' && CON[conAb]) h += '<dt>位在</dt><dd><button class="linkish" data-act="con" data-id="' + conAb + '">' + CON[conAb].zh + '</button></dd>';
   h += '<dt>接下來</dt><dd>' + bodyEvents(id) + '</dd>';
   h += '</dl><p class="prose">' + esc(inf.note) + '</p>';
-  h += '<div class="actions"><button class="btn primary" data-act="center">在星空中置中</button></div>';
+  h += centerBtn();
   return h;
 }
 function dsoHTML(id) {
@@ -1975,7 +1976,7 @@ function dsoHTML(id) {
   if (CON[conAb]) h += '<dt>位在</dt><dd><button class="linkish" data-act="con" data-id="' + conAb + '">' + CON[conAb].zh + '</button></dd>';
   h += '<dt>接下來</dt><dd>' + eventLine(fixedEvents(d.ra, d.dec)) + '</dd>';
   h += '</dl><p class="prose">' + esc(d.note) + '</p>';
-  h += '<div class="actions"><button class="btn primary" data-act="center">在星空中置中</button></div>';
+  h += centerBtn();
   return h;
 }
 function selHor(sel) {
