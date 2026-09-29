@@ -1,0 +1,243 @@
+name: Android TWA build
+
+# 產生「頭頂星空」的 Android Trusted Web Activity 專案並建置 .aab / .apk。
+# - 手動：GitHub → Actions → 「Android TWA build」→ Run workflow
+# - 自動：android/** 或本檔案有變動並推到 main 時
+#
+# 若已設定四個 Secrets（ANDROID_KEYSTORE_BASE64、ANDROID_KEYSTORE_PASSWORD、
+# ANDROID_KEY_ALIAS、ANDROID_KEY_PASSWORD），會順便簽章並發布到 android-v<版本> 預先發布；
+# 沒設定就只產出未簽章檔案（工作流程產物 + 預先發布 android-build-unsigned）。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-twa-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Generate + Gradle build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TWA_OUT_DIR: ${{ github.workspace }}/android/build/twa
+      # secrets 不能直接用在 step 的 if 裡，先轉成環境變數。
+      HAS_SIGNING_SECRETS: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: android/package-lock.json
+
+      - name: Read version from twa-manifest.json
+        id: meta
+        run: |
+          set -euo pipefail
+          VERSION_NAME=$(jq -r .appVersionName android/twa-manifest.json)
+          VERSION_CODE=$(jq -r .appVersionCode android/twa-manifest.json)
+          PACKAGE_ID=$(jq -r .packageId android/twa-manifest.json)
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "package_id=$PACKAGE_ID" >> "$GITHUB_OUTPUT"
+          echo "base=toudingxingkong-$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "versionName=$VERSION_NAME versionCode=$VERSION_CODE package=$PACKAGE_ID"
+
+      - name: Install generator dependencies
+        working-directory: android
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate TWA project (bubblewrap core)
+        working-directory: android
+        run: node generate.mjs "$TWA_OUT_DIR"
+
+      - name: Show generated build config
+        run: |
+          set -euo pipefail
+          grep -nE "compileSdkVersion|targetSdkVersion|minSdkVersion|versionCode|versionName|applicationId \"" "$TWA_OUT_DIR/app/build.gradle"
+          grep -n "distributionUrl" "$TWA_OUT_DIR/gradle/wrapper/gradle-wrapper.properties"
+          grep -n "com.android.tools.build:gradle" "$TWA_OUT_DIR/build.gradle"
+
+      - name: Install Android SDK packages
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          COMPILE_SDK=$(grep -oE "compileSdkVersion +[0-9]+" "$TWA_OUT_DIR/app/build.gradle" | grep -oE "[0-9]+$")
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --install "platforms;android-$COMPILE_SDK" "build-tools;36.0.0" "platform-tools" >/dev/null
+          echo "BUILD_TOOLS=$ANDROID_HOME/build-tools/36.0.0" >> "$GITHUB_ENV"
+          ls "$ANDROID_HOME/build-tools"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/package-lock.json', 'android/twa-manifest.json') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Gradle build (bundleRelease + assembleRelease)
+        working-directory: ${{ env.TWA_OUT_DIR }}
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace bundleRelease assembleRelease
+
+      - name: Collect unsigned outputs
+        id: collect
+        run: |
+          set -euo pipefail
+          OUT="$GITHUB_WORKSPACE/android/build/out"
+          mkdir -p "$OUT"
+          BASE="${{ steps.meta.outputs.base }}"
+          AAB=$(find "$TWA_OUT_DIR/app/build/outputs/bundle/release" -name "*.aab" | head -n1)
+          APK=$(find "$TWA_OUT_DIR/app/build/outputs/apk/release" -name "*.apk" | head -n1)
+          test -n "$AAB" && test -n "$APK"
+          cp "$AAB" "$OUT/$BASE-unsigned.aab"
+          cp "$APK" "$OUT/$BASE-unsigned.apk"
+          (cd "$OUT" && sha256sum "$BASE-unsigned.aab" "$BASE-unsigned.apk" | tee SHA256SUMS-unsigned.txt)
+          ls -la "$OUT"
+          echo "out=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload unsigned artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-unsigned-${{ steps.meta.outputs.version_name }}
+          path: |
+            ${{ steps.collect.outputs.out }}/*-unsigned.aab
+            ${{ steps.collect.outputs.out }}/*-unsigned.apk
+            ${{ steps.collect.outputs.out }}/SHA256SUMS-unsigned.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish unsigned prerelease (android-build-unsigned)
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          OUT="${{ steps.collect.outputs.out }}"
+          TAG=android-build-unsigned
+          gh release delete "$TAG" --cleanup-tag --yes 2>/dev/null || true
+          # 刪除後稍等，避免 tag 尚未清掉就重建
+          sleep 5
+          NOTES=$(cat <<EOF
+          「頭頂星空」Android TWA **未簽章**建置產物（每次工作流程執行都會覆蓋）。
+          - 套件：${{ steps.meta.outputs.package_id }}
+          - versionName ${{ steps.meta.outputs.version_name }} / versionCode ${{ steps.meta.outputs.version_code }}
+          - 來源 commit：${{ github.sha }}
+          - 工作流程：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          這些檔案**尚未簽章**，不能直接上傳 Google Play 或安裝到手機；請依 android/README.md 用上傳金鑰簽章。
+
+          \`\`\`
+          $(cat "$OUT/SHA256SUMS-unsigned.txt")
+          \`\`\`
+          EOF
+          )
+          gh release create "$TAG" \
+            --target "${{ github.sha }}" \
+            --prerelease \
+            --title "Android 未簽章建置（${{ steps.meta.outputs.version_name }}）" \
+            --notes "$NOTES" \
+            "$OUT"/*-unsigned.aab "$OUT"/*-unsigned.apk "$OUT/SHA256SUMS-unsigned.txt"
+          echo "https://github.com/${{ github.repository }}/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
+
+      # ---------- 以下為選用的自動簽章：四個 Secrets 都存在才會執行 ----------
+
+      - name: Sign .aab (jarsigner) and .apk (zipalign + apksigner)
+        if: env.HAS_SIGNING_SECRETS == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          OUT="${{ steps.collect.outputs.out }}"
+          BASE="${{ steps.meta.outputs.base }}"
+          KS="$RUNNER_TEMP/upload-keystore.p12"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$KS"
+          keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
+          # .aab：Play 需要 JAR 簽章（jarsigner）
+          jarsigner -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            -signedjar "$OUT/$BASE.aab" "$OUT/$BASE-unsigned.aab" "$ANDROID_KEY_ALIAS"
+          jarsigner -verify -strict "$OUT/$BASE.aab"
+
+          # .apk：先 zipalign 再 apksigner（v1+v2+v3 簽章）
+          "$BUILD_TOOLS/zipalign" -p -f 4 "$OUT/$BASE-unsigned.apk" "$RUNNER_TEMP/aligned.apk"
+          "$BUILD_TOOLS/apksigner" sign --ks "$KS" --ks-pass "pass:$ANDROID_KEYSTORE_PASSWORD" \
+            --ks-key-alias "$ANDROID_KEY_ALIAS" --key-pass "pass:$ANDROID_KEY_PASSWORD" \
+            --out "$OUT/$BASE.apk" "$RUNNER_TEMP/aligned.apk"
+          "$BUILD_TOOLS/apksigner" verify --print-certs "$OUT/$BASE.apk"
+
+          rm -f "$KS" "$RUNNER_TEMP/aligned.apk"
+          (cd "$OUT" && sha256sum "$BASE.aab" "$BASE.apk" | tee SHA256SUMS-signed.txt)
+
+      - name: Upload signed artifacts
+        if: env.HAS_SIGNING_SECRETS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-signed-${{ steps.meta.outputs.version_name }}
+          path: |
+            ${{ steps.collect.outputs.out }}/${{ steps.meta.outputs.base }}.aab
+            ${{ steps.collect.outputs.out }}/${{ steps.meta.outputs.base }}.apk
+            ${{ steps.collect.outputs.out }}/SHA256SUMS-signed.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish signed prerelease (android-v<version>)
+        if: env.HAS_SIGNING_SECRETS == 'true' && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          OUT="${{ steps.collect.outputs.out }}"
+          BASE="${{ steps.meta.outputs.base }}"
+          TAG="android-v${{ steps.meta.outputs.version_name }}"
+          gh release delete "$TAG" --cleanup-tag --yes 2>/dev/null || true
+          sleep 5
+          NOTES=$(cat <<EOF
+          「頭頂星空」Android TWA 已簽章建置產物（上傳金鑰簽章）。
+          - 套件：${{ steps.meta.outputs.package_id }}
+          - versionName ${{ steps.meta.outputs.version_name }} / versionCode ${{ steps.meta.outputs.version_code }}
+          - 來源 commit：${{ github.sha }}
+          - .aab 上傳 Google Play Console；.apk 供側載測試。
+
+          \`\`\`
+          $(cat "$OUT/SHA256SUMS-signed.txt")
+          \`\`\`
+          EOF
+          )
+          gh release create "$TAG" \
+            --target "${{ github.sha }}" \
+            --prerelease \
+            --title "頭頂星空 Android ${{ steps.meta.outputs.version_name }}（已簽章）" \
+            --notes "$NOTES" \
+            "$OUT/$BASE.aab" "$OUT/$BASE.apk" "$OUT/SHA256SUMS-signed.txt"
+          echo "https://github.com/${{ github.repository }}/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"

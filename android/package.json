@@ -1,0 +1,12 @@
+{
+  "name": "toudingxingkong-android",
+  "private": true,
+  "description": "頭頂星空 Trusted Web Activity (Android) 專案產生器",
+  "type": "module",
+  "scripts": {
+    "generate": "node generate.mjs"
+  },
+  "dependencies": {
+    "@bubblewrap/core": "1.25.0"
+  }
+}
