@@ -186,7 +186,9 @@ jobs:
           jarsigner -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" \
             -sigalg SHA256withRSA -digestalg SHA-256 \
             -signedjar "$OUT/$BASE.aab" "$OUT/$BASE-unsigned.aab" "$ANDROID_KEY_ALIAS"
-          jarsigner -verify -strict "$OUT/$BASE.aab"
+          # 上傳金鑰是自簽憑證：-strict 驗證時要用同一個金鑰庫當信任錨點，
+          # 否則 jarsigner 會回報 signer errors 並以 exit 4 結束（簽章本身沒問題）。
+          jarsigner -verify -strict -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD" "$OUT/$BASE.aab"
 
           # .apk：先 zipalign 再 apksigner（v1+v2+v3 簽章）
           "$BUILD_TOOLS/zipalign" -p -f 4 "$OUT/$BASE-unsigned.apk" "$RUNNER_TEMP/aligned.apk"

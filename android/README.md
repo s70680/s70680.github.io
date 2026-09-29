@@ -12,7 +12,9 @@
 | SDK | minSdk 21、compileSdk 36、targetSdk 36（Google Play 2026-08-31 起的要求） |
 | 主題／背景／導覽列顏色 | `#080C1F` |
 | 通知委派 | 關閉；定位由 Chrome 自己跳提示，不做 location delegation |
+| 權限 | 只有 AndroidX 自動加入的 `io.github.s70680.sky.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`（signature 等級、只給 App 自己用）；**沒有**定位、廣告 ID（AD_ID）、網路、通知權限——網頁由 Chrome 載入 |
 | 產生器 | `@bubblewrap/core` 1.25.0（版本鎖在 `package-lock.json`） |
+| 已簽章檔案 | 1.0.0 已手動簽章（見下方「手動簽章」），檔案在 Jack 手上的 `deliverables/android/`；設好 Secrets 後 CI 也會發布 `android-v<版本>` 預先發布 |
 
 ## 檔案說明
 
@@ -47,7 +49,8 @@
 
 1. 到 GitHub repo → **Actions** → 左側選「**Android TWA build**」。
 2. 右側按 **Run workflow** → 選 `main` → **Run workflow**。
-3. 約 5～8 分鐘完成。結果在該次執行頁面的 **Artifacts**，以及 Releases 的
+3. 約 1～3 分鐘完成（2026-09-29 實測約 1～2 分鐘；Gradle 快取失效時會久一點）。
+   結果在該次執行頁面的 **Artifacts**，以及 Releases 的
    `android-build-unsigned`（有 Secrets 時另有 `android-v<版本>`）。
 
 另外只要把 `android/**` 或工作流程檔的變更推到 `main`，也會自動建置。
@@ -104,6 +107,9 @@
 設好之後再 Run workflow 一次，就會多出已簽章的 `toudingxingkong-<版本>.aab`／`.apk`
 與預先發布 `android-v<版本>`。CI log 不會印出密碼或金鑰內容。
 
+> 若 `android-v<版本>` 已經存在，CI 會先刪掉再重建，換成 CI 簽章的檔案。CI 與手動簽章用的是
+> 同一把上傳金鑰，擇一上傳 Play 即可；同一個 versionCode 在 Play 只能上傳一次。
+
 ### 手動簽章（沒設 Secrets 時）
 
 從 `android-build-unsigned` 下載 `*-unsigned.aab`／`*-unsigned.apk`，在有 JDK 與
@@ -115,6 +121,8 @@ jarsigner -keystore upload-keystore.p12 -storepass <密碼> -keypass <密碼> \
   -sigalg SHA256withRSA -digestalg SHA-256 \
   -signedjar toudingxingkong-1.0.0.aab toudingxingkong-1.0.0-unsigned.aab upload
 jarsigner -verify -keystore upload-keystore.p12 -storepass <密碼> -strict toudingxingkong-1.0.0.aab
+# 要加 -keystore：上傳金鑰是自簽憑證，不加的話會顯示「jar verified, with signer errors」
+# 並回傳 exit 4（簽章本身沒問題）。加了之後應只顯示「jar verified.」。
 
 # .apk（一定要先 zipalign 再 apksigner）
 zipalign -p -f 4 toudingxingkong-1.0.0-unsigned.apk aligned.apk
@@ -123,8 +131,22 @@ apksigner verify --print-certs toudingxingkong-1.0.0.apk
 ```
 
 沒有 Android SDK 的話，`.apk` 可以改用 [uber-apk-signer](https://github.com/patrickfav/uber-apk-signer)
-（內建 zipalign 與 apksigner）：
-`java -jar uber-apk-signer.jar --apks toudingxingkong-1.0.0-unsigned.apk --ks upload-keystore.p12 --ksAlias upload`。
+（1.3.0，內建 zipalign 與 apksigner，簽 v1＋v2＋v3）：
+
+```bash
+java -jar uber-apk-signer.jar --apks toudingxingkong-1.0.0-unsigned.apk -o out \
+  --ks upload-keystore.p12 --ksAlias upload \
+  --verifySha256 1e16e7b44fbeae35c5c34881bff54c653cb1d0c9f2854decc9a4af446fa0541f
+```
+
+會詢問兩次密碼（金鑰庫、金鑰，兩者相同）；輸出是 `out/toudingxingkong-1.0.0-unsigned-aligned-signed.apk`
+（另有一個 `.idsig`，用不到），改名成 `toudingxingkong-1.0.0.apk` 即可。
+`.aab` 仍然要用上面的 `jarsigner`（uber-apk-signer 不處理 .aab）。
+
+2026-09-29 交給 Jack 的 1.0.0 已簽章檔（`deliverables/android/toudingxingkong-1.0.0.aab`／`.apk`）
+就是用這兩個方式簽的，來源是 `android-build-unsigned`（commit `2583f10`、工作流程執行
+36512511015）的未簽章檔，並已用 `bundletool validate`、`jarsigner -verify`、
+`apksigner verify --print-certs` 核對過。
 
 ## 上傳 Google Play 後：把 Play 的簽署金鑰指紋加進 assetlinks.json（必做）
 
@@ -133,7 +155,10 @@ Google Play 會用 **Play App Signing** 的「應用程式簽署金鑰」重新�
 指紋，從 Play 安裝的 App 開啟時會出現瀏覽器網址列（TWA 驗證失敗）。
 
 1. 第一次上傳 `.aab` 並建立版本後，到 Play Console → 選擇 App →
-   **測試與發布 → 設定 → 應用程式簽署**（舊版路徑：**設定 → 應用程式完整性 → 應用程式簽署**）。
+   **由 Google Play 保護 → Play 商店發行 → 前往 Play 應用程式簽署**
+   （英文介面：Protected with Play → Play Store distribution → Go to Play app signing；
+   依 Play 說明中心〈使用 Play 應用程式簽署〉，2026-09-29 查核。Play Console 常改版，
+   找不到時用上方搜尋框搜「應用程式簽署」；較舊的名稱是「測試與發布／設定 → 應用程式完整性 → 應用程式簽署」）。
 2. 複製「**應用程式簽署金鑰憑證**」區塊的 **SHA-256 憑證指紋**（不是上傳金鑰憑證那一組）。
 3. 編輯 repo 根目錄的 `.well-known/assetlinks.json`，把它加進陣列（**兩組都保留**，
    上傳金鑰那組讓側載測試的 APK 也能通過驗證）：
@@ -181,8 +206,9 @@ Google Play 會用 **Play App Signing** 的「應用程式簽署金鑰」重新�
 
 - **建置失敗在「Generate TWA project」**：多半是網站圖示下載失敗
   （`https://s70680.github.io/sky/icon-512.png` 要能打開、Content-Type 是 image/png）。
-- **Gradle 錯誤 `compileSdkVersion`／`build-tools` 找不到**：`generate.mjs` 裡的
-  `COMPILE_SDK`/`TARGET_SDK` 與工作流程 `sdkmanager --install` 的版本要一致。
+- **Gradle 錯誤 `compileSdkVersion`／`build-tools` 找不到**：工作流程會從產生出來的
+  `app/build.gradle` 讀 compileSdk，自動安裝對應的 `platforms;android-<版本>`；
+  `build-tools;36.0.0` 則是寫死在 `android.yml`，Gradle 要求更新版本時改那一行。
 - **Google Play 要求更高的 targetSdk**：改 `generate.mjs` 的 `TARGET_SDK`、`COMPILE_SDK`
   和 `android.yml` 的 `build-tools;<版本>`，必要時升級 `@bubblewrap/core`
   （`npm install @bubblewrap/core@latest` 後 commit `package-lock.json`）。
