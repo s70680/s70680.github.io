@@ -1,5 +1,5 @@
 // 頭頂星空 service worker: works offline after the first visit.
-const VERSION = 'v1-2026-09-28';
+const VERSION = 'v2-2026-09-29';
 const CORE_CACHE = 'toudingxingkong-core-' + VERSION;
 const FONT_CACHE = 'toudingxingkong-fonts';
 const CORE = [
@@ -10,7 +10,9 @@ const CORE = [
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',
-  './favicon-32.png'
+  './favicon-32.png',
+  './privacy.html',
+  './licenses.html'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,11 +34,14 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin === self.location.origin) {
     if (req.mode === 'navigate') {
-      // network first so updates arrive; fall back to the cached app when offline
+      // network first so updates arrive; fall back to the cached copy when offline.
+      // Only the app itself is stored as ./index.html (privacy.html / licenses.html keep their own entries).
+      const isApp = /\/(index\.html)?$/.test(url.pathname);
+      const key = isApp ? './index.html' : req;
       event.respondWith(
         fetch(req)
-          .then((res) => { const copy = res.clone(); caches.open(CORE_CACHE).then((c) => c.put('./index.html', copy)); return res; })
-          .catch(() => caches.match('./index.html'))
+          .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CORE_CACHE).then((c) => c.put(key, copy)); } return res; })
+          .catch(() => caches.match(key, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html')))
       );
       return;
     }

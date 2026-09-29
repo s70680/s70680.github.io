@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080C1F">
+<title>隱私權政策｜頭頂星空</title>
+<meta name="description" content="頭頂星空 App 的隱私權政策：位置與方向感測只在手機上用來畫星空，不會傳給開發者；沒有帳號、廣告、分析或追蹤。">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<style>
+:root { color-scheme: dark; --bg: #080C1F; --text: #ECE8DD; --muted: #9AA3BF; --gold: #D9B26A; --hair: rgba(236,232,221,.12); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.75 "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; }
+main { max-width: 42rem; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 48px; }
+a { color: var(--gold); text-underline-offset: 2px; }
+h1 { font: 700 1.6rem/1.3 "Noto Serif TC", "Songti TC", "PMingLiU", serif; margin: 12px 0 4px; }
+h2 { font-size: 1.12rem; margin: 28px 0 6px; color: var(--gold); }
+h3 { font-size: 1rem; margin: 18px 0 4px; }
+p, li { margin: 6px 0; }
+ul { padding-left: 1.2em; }
+.meta { color: var(--muted); font-size: .92rem; }
+.back { display: inline-block; font-size: .95rem; }
+.lang { border-top: 1px solid var(--hair); margin-top: 40px; padding-top: 8px; }
+code { font: .9em "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; background: rgba(236,232,221,.08); padding: 1px 4px; border-radius: 4px; word-break: break-all; }
+nav.toc a { margin-right: 12px; }
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">← 回到星空</a>
+<nav class="toc meta" aria-label="語言"><a href="#zh">繁體中文</a><a href="#en">English</a></nav>
+
+<article id="zh" lang="zh-Hant-TW">
+<h1>隱私權政策</h1>
+<p class="meta">適用於「頭頂星空」網頁 App（https://s70680.github.io/sky/）與 Google Play 上的 Android 版（套件名稱 <code>io.github.s70680.sky</code>）。生效日期：2026 年 9 月 29 日。</p>
+
+<h2>一句話說明</h2>
+<p>頭頂星空只在你的手機上計算與繪製星空。開發者不經營任何伺服器來接收你的資料：沒有帳號、沒有廣告、沒有分析或追蹤工具，也不會出售任何資料。</p>
+
+<h2>1. 位置資訊</h2>
+<ul>
+<li>用途：依你所在的經緯度計算當地看到的星空、天體升落時間。</li>
+<li>何時取得：預設在每次開啟 App 時向系統請求一次位置（不要求高精確度；第一次會詢問你是否允許），你也可以在「觀測地點」中按「使用我的位置（GPS）」手動更新。你可以拒絕權限，改選城市或自行輸入座標，App 其他功能都能正常使用。</li>
+<li>處理方式：座標只在手機上使用，並四捨五入到小數點後兩位（約 1 公里）後，連同最近的城市名稱存在手機的瀏覽器本機儲存空間（見第 3 點），下次開啟時使用。<strong>位置不會傳送給開發者或任何第三方。</strong></li>
+</ul>
+
+<h2>2. 動作與方向感測器</h2>
+<ul>
+<li>只有在你開啟「指向模式」時，App 才會讀取手機的陀螺儀與指南針（DeviceOrientation）資料，讓星圖跟著手機方向轉動；同時會暫時要求螢幕保持開啟（Screen Wake Lock）。</li>
+<li>這些資料只在記憶體中即時計算，關閉指向模式後即停止讀取，<strong>不會儲存，也不會傳出手機。</strong></li>
+</ul>
+
+<h2>3. 存在手機上的資料</h2>
+<p>App 使用瀏覽器的本機儲存空間（<code>localStorage</code>）記住你的設定，所有鍵值都以 <code>toudingxingkong.</code> 開頭：</p>
+<ul>
+<li><code>loc</code>：觀測地點（名稱、緯度、經度，是否來自定位）</li>
+<li><code>locMode</code>：使用定位或手動選擇的地點</li>
+<li><code>layers</code>：顯示圖層的開關</li>
+<li><code>red</code>：夜間紅光模式是否開啟</li>
+<li><code>installSeen</code>、<code>hint</code>：是否已看過安裝提示與操作提示</li>
+</ul>
+<p>此外，App 透過 Service Worker 的快取（Cache Storage）保存 App 本身的檔案與字型，讓你在沒有網路的觀星地點也能使用。這些資料都只存在你的裝置上；清除 App 或瀏覽器的網站資料、或解除安裝 App，就會全部刪除。</p>
+
+<h2>4. 會連線到的第三方服務</h2>
+<p>App 不會主動把你的資料送出去，但以下服務在傳送檔案時，會像一般瀏覽網頁一樣收到你的 IP 位址與瀏覽器資訊，並依各自的政策處理：</p>
+<ul>
+<li><strong>GitHub Pages</strong>（GitHub, Inc.）：存放並傳送 App 的檔案。GitHub 表示會為安全目的記錄造訪者的 IP 位址。<a href="https://docs.github.com/zh/site-policy/privacy-policies/github-general-privacy-statement">GitHub 隱私權聲明</a></li>
+<li><strong>Google Fonts</strong>（Google LLC）：從 <code>fonts.googleapis.com</code> 與 <code>fonts.gstatic.com</code> 下載 Noto Serif TC、IBM Plex Mono 字型。<a href="https://developers.google.com/fonts/faq/privacy">Google Fonts 隱私權常見問題</a>、<a href="https://policies.google.com/privacy?hl=zh-TW">Google 隱私權政策</a></li>
+<li><strong>Google Chrome</strong>：Android 版 App 以 Chrome 的「Trusted Web Activity」執行網頁內容，Chrome 本身的資料處理依你的 Chrome 設定與 <a href="https://www.google.com/chrome/privacy/">Chrome 隱私權聲明</a>。</li>
+<li><strong>Google Play</strong>：從 Google Play 下載與更新 App 時，適用 <a href="https://policies.google.com/privacy?hl=zh-TW">Google 隱私權政策</a>。</li>
+</ul>
+<p>天體位置由 App 內建的 Astronomy Engine 在手機上計算，不會向任何天文服務查詢。</p>
+
+<h2>5. 我們不做的事</h2>
+<ul>
+<li>不需要註冊或登入，沒有帳號。</li>
+<li>沒有廣告，不使用廣告 ID。</li>
+<li>沒有分析、統計、當機回報或追蹤工具，App 本身不設定 Cookie。</li>
+<li>不出售、不出租、不分享任何使用者資料。</li>
+</ul>
+
+<h2>6. 兒童</h2>
+<p>本 App 適合一般大眾使用，並非專為兒童設計。由於 App 不收集任何個人資料，也不會蒐集 13 歲以下兒童的個人資料。</p>
+
+<h2>7. 你的選擇</h2>
+<ul>
+<li>可隨時關閉位置權限，改用手動選擇的地點：Android App 請長按 App 圖示 →「網站設定」，或在 Chrome 的「設定 → 網站設定 → 位置」中調整。</li>
+<li>可清除 App 儲存空間或解除安裝，刪除所有存在手機上的設定與快取。</li>
+</ul>
+
+<h2>8. 政策變更</h2>
+<p>如果 App 的資料處理方式改變（例如日後加入付費功能），我們會先更新本頁並修改上方的生效日期；重大變更會在 App 或 Google Play 商店資訊中說明。</p>
+
+<h2>9. 聯絡方式</h2>
+<p>對本政策有任何問題，請在 GitHub Issues 留言：<a href="https://github.com/s70680/s70680.github.io/issues">https://github.com/s70680/s70680.github.io/issues</a></p>
+</article>
+
+<article id="en" class="lang" lang="en">
+<h1>Privacy Policy</h1>
+<p class="meta">Applies to the “頭頂星空” (Sky Above) web app at https://s70680.github.io/sky/ and its Android version on Google Play (package <code>io.github.s70680.sky</code>). Effective date: September 29, 2026.</p>
+
+<h2>Summary</h2>
+<p>The app computes and draws the sky entirely on your device. The developer runs no server that receives your data: there are no accounts, no ads, no analytics or tracking, and no data is ever sold.</p>
+
+<h2>1. Location</h2>
+<ul>
+<li>Purpose: to compute the sky visible from your latitude and longitude, including rise and set times.</li>
+<li>When: by default the app asks the system for your position once each time it opens (high accuracy is not requested; the system asks for your permission the first time). You can also refresh it with “Use my location (GPS)”. You may deny the permission and pick a city or enter coordinates instead; everything else keeps working.</li>
+<li>Handling: coordinates are used only on the device, rounded to two decimal places (about 1 km) and saved, together with the nearest city name, in the browser’s local storage (see section 3) for your next visit. <strong>Your location is never sent to the developer or to any third party.</strong></li>
+</ul>
+
+<h2>2. Motion and orientation sensors</h2>
+<ul>
+<li>Only while you use “Pointing mode” does the app read the gyroscope and compass (DeviceOrientation events) so the chart follows your phone, and it asks the screen to stay on (Screen Wake Lock).</li>
+<li>These readings are processed in memory in real time and stop when you leave pointing mode. <strong>They are not stored and never leave the device.</strong></li>
+</ul>
+
+<h2>3. Data stored on your device</h2>
+<p>Settings are kept in the browser’s <code>localStorage</code> under keys starting with <code>toudingxingkong.</code>: <code>loc</code> (observing place: name, latitude, longitude, whether it came from GPS), <code>locMode</code> (GPS or manual), <code>layers</code> (layer switches), <code>red</code> (night red mode), <code>installSeen</code> and <code>hint</code> (whether tips were shown). A service worker also caches the app files and fonts (Cache Storage) so the app works offline. All of this stays on your device and is deleted when you clear the app’s storage or uninstall it.</p>
+
+<h2>4. Third-party services contacted</h2>
+<p>The app does not send your data anywhere, but the following services receive your IP address and browser information when they deliver files, as with any web page, and handle it under their own policies:</p>
+<ul>
+<li><strong>GitHub Pages</strong> (GitHub, Inc.) hosts and serves the app files; GitHub states that visitor IP addresses are logged for security purposes. <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a></li>
+<li><strong>Google Fonts</strong> (Google LLC) serves the Noto Serif TC and IBM Plex Mono fonts from <code>fonts.googleapis.com</code> and <code>fonts.gstatic.com</code>. <a href="https://developers.google.com/fonts/faq/privacy">Google Fonts privacy FAQ</a>, <a href="https://policies.google.com/privacy">Google Privacy Policy</a></li>
+<li><strong>Google Chrome</strong> runs the Android app as a Trusted Web Activity; Chrome’s own data handling follows your Chrome settings and the <a href="https://www.google.com/chrome/privacy/">Chrome Privacy Notice</a>.</li>
+<li><strong>Google Play</strong> delivers and updates the app under the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</li>
+</ul>
+<p>Planet and star positions are computed on the device by the bundled Astronomy Engine library; no astronomy service is queried.</p>
+
+<h2>5. What we do not do</h2>
+<ul>
+<li>No sign-up or login; no accounts.</li>
+<li>No ads and no use of the advertising ID.</li>
+<li>No analytics, crash reporting or tracking tools; the app itself sets no cookies.</li>
+<li>No selling, renting or sharing of user data.</li>
+</ul>
+
+<h2>6. Children</h2>
+<p>The app is intended for a general audience and is not designed specifically for children. Because it collects no personal data, it does not collect personal data from children under 13.</p>
+
+<h2>7. Your choices</h2>
+<p>You can turn off location permission at any time (in the Android app: long-press the app icon → “Site settings”, or Chrome → Settings → Site settings → Location) and use a manually chosen place, and you can clear the app’s storage or uninstall it to delete all locally stored settings and caches.</p>
+
+<h2>8. Changes</h2>
+<p>If the app’s data practices change (for example, if paid features are added later), this page and its effective date will be updated first; significant changes will also be noted in the app or on its Google Play listing.</p>
+
+<h2>9. Contact</h2>
+<p>Questions about this policy: please open an issue at <a href="https://github.com/s70680/s70680.github.io/issues">https://github.com/s70680/s70680.github.io/issues</a>.</p>
+</article>
+
+<p class="meta" style="margin-top:36px"><a href="./">← 回到星空 / Back to the sky</a>　·　<a href="licenses.html">資料來源與授權 / Licenses</a></p>
+</main>
+</body>
+</html>

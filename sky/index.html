@@ -2199,7 +2199,8 @@ const LAYER_DEFS = [
 function layersHTML() {
   return LAYER_DEFS.map(([k, t, s]) => '<label class="switch" for="lay_' + k + '"><span>' + t + (s ? '<small>' + s + '</small>' : '') + '</span><input type="checkbox" id="lay_' + k + '" data-layer="' + k + '"' + (state.layers[k] ? ' checked' : '') + '></label>').join('') +
     '<label class="switch" for="lay_red"><span>夜間紅光模式<small>保護暗適應，觀星時眼睛不會被螢幕光刺激</small></span><input type="checkbox" id="lay_red"' + (state.red ? ' checked' : '') + '></label>' +
-    '<p class="note">星表：依巴谷星表 6 等以內亮星（d3-celestial 整理）；天體位置以 Astronomy Engine 即時計算。</p>';
+    '<p class="note">星表：依巴谷星表 6 等以內亮星（d3-celestial 整理）；天體位置以 Astronomy Engine 即時計算。</p>' +
+    '<p class="note"><a href="licenses.html" style="color:var(--brass)">資料來源與授權</a>　·　<a href="privacy.html" style="color:var(--brass)">隱私權政策</a></p>';
 }
 function openLayers() { state.sel = null; openSheet('layers', '顯示設定', layersHTML()); }
 function setRed(on) {
