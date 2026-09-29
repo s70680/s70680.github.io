@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.s70680.sky",
+      "sha256_cert_fingerprints": [
+        "1E:16:E7:B4:4F:BE:AE:35:C5:C3:48:81:BF:F5:4C:65:3C:B1:D0:C9:F2:85:4D:EC:C9:A4:AF:44:6F:A0:54:1F"
+      ]
+    }
+  }
+]
