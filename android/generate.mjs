@@ -50,6 +50,9 @@ async function main() {
     fetchUtils.setFetchEngine('node-fetch');
   }
 
+  // TwaManifest 建構子讀的是舊欄位 appVersion；以 appVersionName 為準，避免兩個欄位不同步。
+  if (json.appVersionName) json.appVersion = json.appVersionName;
+
   const twaManifest = new TwaManifest(json);
   const error = twaManifest.validate();
   if (error) throw new Error(`twa-manifest.json 無效：${error}`);
