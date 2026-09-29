@@ -2,8 +2,20 @@
 <html lang="zh-Hant-TW">
 <head>
 <meta charset="utf-8">
+<script>(function(){try{var u=navigator.userAgent||'';if(/\sLine\//.test(u)&&!/[?&]openExternalBrowser=1/.test(location.search)){location.replace(location.pathname+(location.search?location.search+'&':'?')+'openExternalBrowser=1'+location.hash);}}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#080C1F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="頭頂星空">
+<meta property="og:title" content="頭頂星空">
+<meta property="og:description" content="打開就能看到你頭頂此刻的星空、行星、銀河與 88 星座，點一下就有中文介紹。免費，不用下載。">
+<meta property="og:url" content="https://s70680.github.io/sky/">
+<meta property="og:image" content="https://s70680.github.io/sky/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="頭頂星空：依你的位置顯示此刻頭頂的星空與星座">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -275,6 +287,7 @@ button { cursor: pointer; }
       <span id="installText"></span>
       <span style="display:flex;gap:6px;flex:none">
         <button class="btn small primary" type="button" id="installBtn" data-act="install" hidden>安裝</button>
+        <button class="btn small primary" type="button" id="copyLinkBtn" data-act="copy-link" hidden>複製網址</button>
         <button class="btn small" type="button" data-act="install-close">知道了</button>
       </span>
     </div>
@@ -2200,7 +2213,7 @@ function layersHTML() {
   return LAYER_DEFS.map(([k, t, s]) => '<label class="switch" for="lay_' + k + '"><span>' + t + (s ? '<small>' + s + '</small>' : '') + '</span><input type="checkbox" id="lay_' + k + '" data-layer="' + k + '"' + (state.layers[k] ? ' checked' : '') + '></label>').join('') +
     '<label class="switch" for="lay_red"><span>夜間紅光模式<small>保護暗適應，觀星時眼睛不會被螢幕光刺激</small></span><input type="checkbox" id="lay_red"' + (state.red ? ' checked' : '') + '></label>' +
     '<p class="note">星表：依巴谷星表 6 等以內亮星（d3-celestial 整理）；天體位置以 Astronomy Engine 即時計算。</p>' +
-    '<p class="note"><a href="licenses.html" style="color:var(--brass)">資料來源與授權</a>　·　<a href="privacy.html" style="color:var(--brass)">隱私權政策</a></p>';
+    (STANDALONE ? '<p class="note"><a href="licenses.html" style="color:var(--brass)">資料來源與授權</a>　·　<a href="privacy.html" style="color:var(--brass)">隱私權政策</a></p>' : '');
 }
 function openLayers() { state.sel = null; openSheet('layers', '顯示設定', layersHTML()); }
 function setRed(on) {
@@ -2221,6 +2234,7 @@ function onAction(e) {
   }
   else if (act === 'gps') requestGPS(true);
   else if (act === 'install') promptInstall();
+  else if (act === 'copy-link') copyLink();
   else if (act === 'install-close') { save('installSeen', 1); $('#installCard').hidden = true; layout(); requestRender(); }
   else if (act === 'con') select({ type: 'con', id }, false);
   else if (act === 'body') select({ type: 'body', id }, false);
@@ -2280,11 +2294,20 @@ window.addEventListener('appinstalled', () => { save('installSeen', 1); installE
 function updateInstallCard() {
   const card = $('#installCard');
   if (!STANDALONE || isStandaloneDisplay() || load('installSeen', 0)) { if (!card.hidden) { card.hidden = true; layout(); requestRender(); } return; }
-  const btn = $('#installBtn');
-  if (installEvt) { $('#installText').textContent = '把頭頂星空安裝到手機桌面'; btn.hidden = false; }
+  const btn = $('#installBtn'), copy = $('#copyLinkBtn');
+  const ua = navigator.userAgent || '';
+  const inApp = /\sLine\//.test(ua) ? 'LINE' : (/FBAN|FBAV|Instagram|Messenger/.test(ua) ? 'App' : '');
+  copy.hidden = !inApp;
+  if (inApp) { $('#installText').textContent = '你正在 ' + inApp + ' 裡開啟。要加到主畫面，請複製網址改用 ' + (isIOS() ? 'Safari' : 'Chrome') + ' 開啟'; btn.hidden = true; }
+  else if (installEvt) { $('#installText').textContent = '把頭頂星空安裝到手機桌面'; btn.hidden = false; }
   else if (isIOS()) { $('#installText').textContent = '加到主畫面：點 Safari 的「分享」→「加入主畫面」'; btn.hidden = true; }
   else { $('#installText').textContent = '加到主畫面：點瀏覽器右上角「⋮」→「加到主畫面」或「安裝應用程式」'; btn.hidden = true; }
   if (card.hidden) { card.hidden = false; layout(); requestRender(); }
+}
+function copyLink() {
+  const url = location.origin + location.pathname;
+  const fail = () => toast('無法自動複製，請手動複製：' + url.replace(/^https:\/\//, ''));
+  try { navigator.clipboard.writeText(url).then(() => toast('已複製網址'), fail); } catch (e) { fail(); }
 }
 function promptInstall() {
   if (!installEvt) return;
