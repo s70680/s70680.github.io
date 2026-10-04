@@ -1,5 +1,5 @@
 // 頭頂星空 service worker: works offline after the first visit.
-const VERSION = 'v2-2026-09-29';
+const VERSION = 'v6-2026-10-04';
 const CORE_CACHE = 'toudingxingkong-core-' + VERSION;
 const FONT_CACHE = 'toudingxingkong-fonts';
 const CORE = [
@@ -16,7 +16,8 @@ const CORE = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CORE_CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache (GitHub Pages sends max-age=600), so a new version never stores stale files
+  event.waitUntil(caches.open(CORE_CACHE).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -38,11 +39,27 @@ self.addEventListener('fetch', (event) => {
       // Only the app itself is stored as ./index.html (privacy.html / licenses.html keep their own entries).
       const isApp = /\/(index\.html)?$/.test(url.pathname);
       const key = isApp ? './index.html' : req;
-      event.respondWith(
-        fetch(req)
-          .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CORE_CACHE).then((c) => c.put(key, copy)); } return res; })
-          .catch(() => caches.match(key, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html')))
-      );
+      const cached = () => caches.match(key, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html'));
+      // download the whole page before using it, and keep the cache update alive even when the cached copy is shown
+      const net = fetch(req).then((res) => {
+        if (!res.ok) return res;
+        return res.arrayBuffer().then((buf) => {
+          const fresh = new Response(buf, { status: res.status, statusText: res.statusText, headers: res.headers });
+          return caches.open(CORE_CACHE).then((c) => c.put(key, fresh.clone())).then(() => fresh, () => fresh);
+        });
+      });
+      event.waitUntil(net.catch(() => {}));
+      event.respondWith(new Promise((resolve) => {
+        let done = false;
+        const use = (r) => { if (!done && r) { done = true; resolve(r); } };
+        // weak signal (e.g. on a mountain): after 4 s show the cached copy; the new version is used next time
+        const timer = setTimeout(() => caches.match(key, { ignoreSearch: true }).then(use), 4000);
+        net
+          // server error (e.g. GitHub Pages outage): show the cached copy instead of an error page
+          .then((res) => (res.status >= 500 ? cached().then((hit) => hit || res) : res))
+          .catch(() => cached().then((hit) => hit || Response.error()))
+          .then((r) => { clearTimeout(timer); use(r); });
+      }));
       return;
     }
     event.respondWith(

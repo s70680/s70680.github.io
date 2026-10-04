@@ -941,7 +941,7 @@ BODIES.forEach((b) => { BODY_BY[b.id] = b; });
 
 // ---------------------------------------------------------------- ephemeris
 let M = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-let observer = null, sunAlt = -90, moonPhaseDeg = 0, lstHours = 0;
+let observer = null, sunAlt = -90, moonPhaseDeg = 0;
 function rotInto(src, dst, n) {
   const a = M[0], b = M[1], c = M[2], d = M[3], e = M[4], f = M[5], g = M[6], h = M[7], k = M[8];
   for (let i = 0, j = 0; i < n; i++, j += 3) {
@@ -981,7 +981,6 @@ function updateEphemeris() {
   }
   moonPhaseDeg = A.MoonPhase(t);
   sunAlt = Math.asin(clamp(BODY_BY.Sun.hor[2], -1, 1)) * RAD;
-  lstHours = (((A.SiderealTime(t) + state.loc.lon / 15) % 24) + 24) % 24;
 }
 
 // ---------------------------------------------------------------- canvas, layout, projection
@@ -1023,7 +1022,7 @@ function layout() {
   if (state.view.dome) state.view.fov = domeFov;
   state.view.fov = clamp(state.view.fov, MIN_FOV, domeFov * 1.12);
 }
-const sensor = { on: false, got: false, abs: false, c: null, u: null, r: null, offset: null, timer: 0, warned: false };
+const sensor = { on: false, got: false, seen: false, abs: false, c: null, u: null, r: null, offset: null, timer: 0, warned: false };
 function setBasis() {
   if (sensor.on && sensor.c) {
     V.c = sensor.c; V.u = sensor.u; V.r = sensor.r;
@@ -1665,6 +1664,7 @@ function deviceAxes(a, b, g) {
 const enuToHor = (v) => [v[1], -v[0], v[2]];
 function onOrient(e) {
   if (!sensor.on || e.alpha == null || e.beta == null || e.gamma == null) return;
+  sensor.seen = true;
   const isAbs = e.type === 'deviceorientationabsolute' || e.absolute === true;
   const iosHeading = typeof e.webkitCompassHeading === 'number' && isFinite(e.webkitCompassHeading) ? e.webkitCompassHeading : null;
   if (isAbs) sensor.abs = true;
@@ -1711,7 +1711,7 @@ function onOrient(e) {
 function startSensor() {
   const begin = () => {
     hideHint();
-    Object.assign(sensor, { on: true, got: false, abs: false, c: null, u: null, r: null, offset: null, warned: false, hinted: false });
+    Object.assign(sensor, { on: true, got: false, seen: false, abs: false, c: null, u: null, r: null, offset: null, warned: false, hinted: false });
     window.addEventListener('deviceorientationabsolute', onOrient, true);
     window.addEventListener('deviceorientation', onOrient, true);
     anim = null;
@@ -1720,7 +1720,16 @@ function startSensor() {
     $('#btnSensor').setAttribute('aria-pressed', 'true');
     toast('把手機舉向天空，星圖會跟著轉');
     clearTimeout(sensor.timer);
-    sensor.timer = setTimeout(() => { if (sensor.on && !sensor.got) { stopSensor(); toast('收不到方向感測資料，請確認手機有陀螺儀與指南針'); } }, 6000);
+    let waits = 0;
+    sensor.timer = setTimeout(function check() {
+      if (!sensor.on || sensor.got) return;
+      // data arrives but the iOS compass is still waiting for calibration (phone held up at the sky): keep waiting a while
+      if (sensor.seen && !sensor.abs) {
+        if (++waits <= 4) { toast('先把手機像平常看螢幕那樣拿著一下，讓指南針校正'); sensor.timer = setTimeout(check, 6000); return; }
+        stopSensor(); toast('指南針還沒校正好，請稍後再試一次指向模式'); return;
+      }
+      stopSensor(); toast('收不到方向感測資料，請確認手機有陀螺儀與指南針');
+    }, 6000);
     requestWake();
     layout(); requestRender();
   };
@@ -1767,6 +1776,7 @@ function requestGPS(userAsked) {
   if (!navigator.geolocation) { gpsStatus = '這個瀏覽器不支援定位，請直接選城市。'; refreshPlaceSheet(); if (userAsked) toast('這個瀏覽器不支援定位'); return; }
   gpsStatus = '定位中…'; refreshPlaceSheet();
   navigator.geolocation.getCurrentPosition((pos) => {
+    if (!userAsked && state.locMode !== 'gps') return; // the user picked a place while the automatic fix was pending
     const lat = +pos.coords.latitude.toFixed(2), lon = +pos.coords.longitude.toFixed(2);
     state.locMode = 'gps'; save('locMode', 'gps');
     gpsStatus = '已使用手機定位';
@@ -1792,24 +1802,31 @@ function relDay(d) {
   const n = Math.round((b - a) / 86400000);
   return n === 0 ? '' : n === 1 ? '明天 ' : n === -1 ? '昨天 ' : (d.getMonth() + 1) + '/' + d.getDate() + ' ';
 }
+// the next h:00 after the time being viewed (keeps a date the user picked)
 function nextClock(h) {
-  const d = new Date(); d.setSeconds(0, 0); d.setMinutes(0);
+  const base = state.live ? new Date() : new Date(state.time);
+  const d = new Date(base); d.setSeconds(0, 0); d.setMinutes(0);
   d.setHours(h % 24);
-  if (d <= new Date()) d.setDate(d.getDate() + 1);
+  if (state.live ? d <= base : d < base) d.setDate(d.getDate() + 1);
   return d;
 }
 
 // events of a fixed point (RA/Dec, J2000) around state.time
 function fixedEvents(raDeg, decDeg) {
-  const lat = state.loc.lat, phi = lat * DEG, d = decDeg * DEG;
-  const H = (((lstHours - raDeg / 15) % 24) + 24) % 24;
+  const lat = state.loc.lat, phi = lat * DEG, sp = Math.sin(phi), cp = Math.cos(phi);
+  // hour angle and declination of date (precession and nutation included), read off the horizontal vector
+  const hv = [0, 0, 0];
+  rotInto(eqVec(raDeg, decDeg), hv, 1);
+  const d = Math.asin(clamp(cp * hv[0] + sp * hv[2], -1, 1));
+  const H = (((Math.atan2(hv[1], cp * hv[2] - sp * hv[0]) * RAD / 15) % 24) + 24) % 24;
   const SID = 1.0027379;
   const at = (hours) => new Date(state.time.getTime() + hours / SID * 3600000);
-  const transitAlt = 90 - Math.abs(lat - decDeg);
+  const transitAlt = 90 - Math.abs(lat - d * RAD);
   const out = { transit: at((24 - H) % 24), transitAlt };
-  const cosH0 = -Math.tan(phi) * Math.tan(d);
+  // rise and set at the standard altitude of −34′ (atmospheric refraction), as almanacs and SearchRiseSet do
+  const cosH0 = (Math.sin(-34 / 60 * DEG) - sp * Math.sin(d)) / (cp * Math.cos(d));
   if (cosH0 <= -1) out.always = true;
-  else if (cosH0 >= 1) out.never = true;
+  else if (!(cosH0 < 1)) out.never = true;
   else {
     const H0 = Math.acos(cosH0) * RAD / 15;
     out.rise = at((((24 - H0 - H) % 24) + 24) % 24);
@@ -1819,15 +1836,16 @@ function fixedEvents(raDeg, decDeg) {
   }
   return out;
 }
-function eventLine(ev) {
-  if (ev.never) return '在你的位置不會升到地平線上';
+// who: subject of the never/always notes (constellation cards use the figure's centre point)
+function eventLine(ev, who) {
+  if (ev.never) return (who || '') + '在你的位置不會升到地平線上';
   const items = [];
   if (ev.rise) items.push([ev.rise, '從' + dirName(ev.riseAz) + '方升起']);
   if (ev.transit) items.push([ev.transit, '最高（' + Math.round(ev.transitAlt) + '°）']);
   if (ev.set) items.push([ev.set, '往' + dirName(ev.setAz) + '方落下']);
   items.sort((p, q) => p[0] - q[0]);
   const s = items.map(([t, w]) => '<span class="mono">' + relDay(t) + hhmm(t) + '</span> ' + w).join('<br>');
-  return ev.always ? s + '<br>整天都在地平線上（不會落下）' : s;
+  return ev.always ? s + '<br>' + (who || '') + '整天都在地平線上（不會落下）' : s;
 }
 function bodyEvents(id) {
   const ev = {};
@@ -1868,7 +1886,7 @@ function latVisibility(c) {
   return 'normal';
 }
 const fmtMag = (m) => (m < 0 ? '−' + Math.abs(m).toFixed(1) : m.toFixed(1)) + ' 等';
-function fmtRA(ra) { const h = ra / 15, hh = Math.floor(h), mm = Math.round((h - hh) * 60); return pad(mm === 60 ? hh + 1 : hh) + 'h ' + pad(mm % 60) + 'm'; }
+function fmtRA(ra) { const h = ra / 15, hh = Math.floor(h), mm = Math.round((h - hh) * 60); return pad(mm === 60 ? (hh + 1) % 24 : hh) + 'h ' + pad(mm % 60) + 'm'; }
 function fmtDec(dec) { const s = dec < 0 ? '−' : '+', a = Math.abs(dec), d = Math.floor(a), m = Math.round((a - d) * 60); return s + (m === 60 ? d + 1 : d) + '° ' + pad(m % 60) + '′'; }
 
 // ---------------------------------------------------------------- info cards
@@ -1913,7 +1931,7 @@ function conHTML(c) {
   h += '<p class="subtitle">' + esc(c.latin) + ' · <span class="mono">' + c.ab + '</span></p>';
   h += conStatusHTML(c);
   h += '<dl class="facts">';
-  if (vis !== 'never') h += '<dt>接下來</dt><dd>' + eventLine(fixedEvents(ra, dec)) + '</dd>';
+  if (vis !== 'never') h += '<dt>接下來</dt><dd>' + eventLine(fixedEvents(ra, dec), vis === 'always' ? '' : '星座中心') + '</dd>';
   h += '<dt>最佳觀賞</dt><dd>' + season.text + '（' + season.season + '星座）</dd>';
   h += '<dt>在你這裡</dt><dd>' + visText + '</dd>';
   if (bright) h += '<dt>亮星</dt><dd>' + bright + '</dd>';
@@ -2079,11 +2097,12 @@ function renderListRows() {
   const box = $('#listRows');
   if (!box) return;
   const qEl = $('#conSearch');
-  const q = qEl ? qEl.value.trim().toLowerCase() : '';
+  const fold = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Boötes = Bootes
+  const q = qEl ? fold(qEl.value.trim()) : '';
   let h = '';
   if (q) {
-    const hits = CONS.filter((c) => [c.info.zh, c.info.alias || '', c.latin, c.info.en, c.ab].join(' ').toLowerCase().includes(q));
-    h = hits.length ? '<div class="rows">' + hits.map(conRow).join('') + '</div>' : '<p class="empty">找不到「' + esc(q) + '」，試試中文名或英文名。</p>';
+    const hits = CONS.filter((c) => fold([c.info.zh, c.info.alias || '', c.latin, c.info.en, c.ab].join(' ')).includes(q));
+    h = hits.length ? '<div class="rows">' + hits.map(conRow).join('') + '</div>' : '<p class="empty">找不到「' + esc(qEl.value.trim()) + '」，試試中文名或英文名。</p>';
   } else if (listTab === 'now') {
     const up = BODIES.filter((b) => b.id !== 'Sun' && b.hor[2] > 0);
     if (up.length) {
@@ -2162,6 +2181,7 @@ function setTime(d, resetSlider) {
   updateEphemeris(); updateTimeUI(); refreshInfo(); requestRender();
 }
 function goLive() {
+  if (state.playing) togglePlay(false);
   state.live = true; state.time = new Date();
   timeBase = state.time.getTime();
   const s = $('#timeSlider'); if (s) s.value = 0;
@@ -2322,6 +2342,8 @@ function updateTimeUI() {
   $('#liveDot').classList.toggle('off', !state.live);
   $('#timeBtn').setAttribute('aria-label', (state.live ? '現在時間 ' : '模擬時間 ') + longDT(state.time) + '，點一下調整');
   const ck = $('#clockText'); if (ck) ck.textContent = longDT(state.time) + (state.live ? '　現在' : '');
+  const di = $('#dateInput');
+  if (di && document.activeElement !== di) di.value = state.time.getFullYear() + '-' + pad(state.time.getMonth() + 1) + '-' + pad(state.time.getDate());
   if (!state.playing) updateSummary();
 }
 function updateSummary() {
