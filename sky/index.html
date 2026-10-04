@@ -1720,10 +1720,14 @@ function startSensor() {
     $('#btnSensor').setAttribute('aria-pressed', 'true');
     toast('把手機舉向天空，星圖會跟著轉');
     clearTimeout(sensor.timer);
+    let waits = 0;
     sensor.timer = setTimeout(function check() {
       if (!sensor.on || sensor.got) return;
-      // data arrives but the iOS compass is still waiting for calibration (phone held up at the sky): keep waiting
-      if (sensor.seen && !sensor.abs) { toast('先把手機像平常看螢幕那樣拿著一下，讓指南針校正'); sensor.timer = setTimeout(check, 6000); return; }
+      // data arrives but the iOS compass is still waiting for calibration (phone held up at the sky): keep waiting a while
+      if (sensor.seen && !sensor.abs) {
+        if (++waits <= 4) { toast('先把手機像平常看螢幕那樣拿著一下，讓指南針校正'); sensor.timer = setTimeout(check, 6000); return; }
+        stopSensor(); toast('指南針還沒校正好，請稍後再試一次指向模式'); return;
+      }
       stopSensor(); toast('收不到方向感測資料，請確認手機有陀螺儀與指南針');
     }, 6000);
     requestWake();
