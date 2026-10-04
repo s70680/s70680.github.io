@@ -941,7 +941,7 @@ BODIES.forEach((b) => { BODY_BY[b.id] = b; });
 
 // ---------------------------------------------------------------- ephemeris
 let M = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-let observer = null, sunAlt = -90, moonPhaseDeg = 0, lstHours = 0;
+let observer = null, sunAlt = -90, moonPhaseDeg = 0;
 function rotInto(src, dst, n) {
   const a = M[0], b = M[1], c = M[2], d = M[3], e = M[4], f = M[5], g = M[6], h = M[7], k = M[8];
   for (let i = 0, j = 0; i < n; i++, j += 3) {
@@ -981,7 +981,6 @@ function updateEphemeris() {
   }
   moonPhaseDeg = A.MoonPhase(t);
   sunAlt = Math.asin(clamp(BODY_BY.Sun.hor[2], -1, 1)) * RAD;
-  lstHours = (((A.SiderealTime(t) + state.loc.lon / 15) % 24) + 24) % 24;
 }
 
 // ---------------------------------------------------------------- canvas, layout, projection
@@ -1801,15 +1800,20 @@ function nextClock(h) {
 
 // events of a fixed point (RA/Dec, J2000) around state.time
 function fixedEvents(raDeg, decDeg) {
-  const lat = state.loc.lat, phi = lat * DEG, d = decDeg * DEG;
-  const H = (((lstHours - raDeg / 15) % 24) + 24) % 24;
+  const lat = state.loc.lat, phi = lat * DEG, sp = Math.sin(phi), cp = Math.cos(phi);
+  // hour angle and declination of date (precession and nutation included), read off the horizontal vector
+  const hv = [0, 0, 0];
+  rotInto(eqVec(raDeg, decDeg), hv, 1);
+  const d = Math.asin(clamp(cp * hv[0] + sp * hv[2], -1, 1));
+  const H = (((Math.atan2(hv[1], cp * hv[2] - sp * hv[0]) * RAD / 15) % 24) + 24) % 24;
   const SID = 1.0027379;
   const at = (hours) => new Date(state.time.getTime() + hours / SID * 3600000);
-  const transitAlt = 90 - Math.abs(lat - decDeg);
+  const transitAlt = 90 - Math.abs(lat - d * RAD);
   const out = { transit: at((24 - H) % 24), transitAlt };
-  const cosH0 = -Math.tan(phi) * Math.tan(d);
+  // rise and set at the standard altitude of −34′ (atmospheric refraction), as almanacs and SearchRiseSet do
+  const cosH0 = (Math.sin(-34 / 60 * DEG) - sp * Math.sin(d)) / (cp * Math.cos(d));
   if (cosH0 <= -1) out.always = true;
-  else if (cosH0 >= 1) out.never = true;
+  else if (!(cosH0 < 1)) out.never = true;
   else {
     const H0 = Math.acos(cosH0) * RAD / 15;
     out.rise = at((((24 - H0 - H) % 24) + 24) % 24);

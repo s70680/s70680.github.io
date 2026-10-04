@@ -1,5 +1,5 @@
 // 頭頂星空 service worker: works offline after the first visit.
-const VERSION = 'v2-2026-09-29';
+const VERSION = 'v3-2026-10-04';
 const CORE_CACHE = 'toudingxingkong-core-' + VERSION;
 const FONT_CACHE = 'toudingxingkong-fonts';
 const CORE = [
