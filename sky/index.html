@@ -2093,11 +2093,12 @@ function renderListRows() {
   const box = $('#listRows');
   if (!box) return;
   const qEl = $('#conSearch');
-  const q = qEl ? qEl.value.trim().toLowerCase() : '';
+  const fold = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Boötes = Bootes
+  const q = qEl ? fold(qEl.value.trim()) : '';
   let h = '';
   if (q) {
-    const hits = CONS.filter((c) => [c.info.zh, c.info.alias || '', c.latin, c.info.en, c.ab].join(' ').toLowerCase().includes(q));
-    h = hits.length ? '<div class="rows">' + hits.map(conRow).join('') + '</div>' : '<p class="empty">找不到「' + esc(q) + '」，試試中文名或英文名。</p>';
+    const hits = CONS.filter((c) => fold([c.info.zh, c.info.alias || '', c.latin, c.info.en, c.ab].join(' ')).includes(q));
+    h = hits.length ? '<div class="rows">' + hits.map(conRow).join('') + '</div>' : '<p class="empty">找不到「' + esc(qEl.value.trim()) + '」，試試中文名或英文名。</p>';
   } else if (listTab === 'now') {
     const up = BODIES.filter((b) => b.id !== 'Sun' && b.hor[2] > 0);
     if (up.length) {
