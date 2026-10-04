@@ -1875,7 +1875,7 @@ function latVisibility(c) {
   return 'normal';
 }
 const fmtMag = (m) => (m < 0 ? '−' + Math.abs(m).toFixed(1) : m.toFixed(1)) + ' 等';
-function fmtRA(ra) { const h = ra / 15, hh = Math.floor(h), mm = Math.round((h - hh) * 60); return pad(mm === 60 ? hh + 1 : hh) + 'h ' + pad(mm % 60) + 'm'; }
+function fmtRA(ra) { const h = ra / 15, hh = Math.floor(h), mm = Math.round((h - hh) * 60); return pad(mm === 60 ? (hh + 1) % 24 : hh) + 'h ' + pad(mm % 60) + 'm'; }
 function fmtDec(dec) { const s = dec < 0 ? '−' : '+', a = Math.abs(dec), d = Math.floor(a), m = Math.round((a - d) * 60); return s + (m === 60 ? d + 1 : d) + '° ' + pad(m % 60) + '′'; }
 
 // ---------------------------------------------------------------- info cards
