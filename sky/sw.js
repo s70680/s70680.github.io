@@ -1,5 +1,5 @@
 // 頭頂星空 service worker: works offline after the first visit.
-const VERSION = 'v5-2026-10-04';
+const VERSION = 'v6-2026-10-04';
 const CORE_CACHE = 'toudingxingkong-core-' + VERSION;
 const FONT_CACHE = 'toudingxingkong-fonts';
 const CORE = [
@@ -16,7 +16,8 @@ const CORE = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CORE_CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache (GitHub Pages sends max-age=600), so a new version never stores stale files
+  event.waitUntil(caches.open(CORE_CACHE).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
