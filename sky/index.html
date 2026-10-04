@@ -2166,6 +2166,7 @@ function setTime(d, resetSlider) {
   updateEphemeris(); updateTimeUI(); refreshInfo(); requestRender();
 }
 function goLive() {
+  if (state.playing) togglePlay(false);
   state.live = true; state.time = new Date();
   timeBase = state.time.getTime();
   const s = $('#timeSlider'); if (s) s.value = 0;
