@@ -1766,6 +1766,7 @@ function requestGPS(userAsked) {
   if (!navigator.geolocation) { gpsStatus = '這個瀏覽器不支援定位，請直接選城市。'; refreshPlaceSheet(); if (userAsked) toast('這個瀏覽器不支援定位'); return; }
   gpsStatus = '定位中…'; refreshPlaceSheet();
   navigator.geolocation.getCurrentPosition((pos) => {
+    if (!userAsked && state.locMode !== 'gps') return; // the user picked a place while the automatic fix was pending
     const lat = +pos.coords.latitude.toFixed(2), lon = +pos.coords.longitude.toFixed(2);
     state.locMode = 'gps'; save('locMode', 'gps');
     gpsStatus = '已使用手機定位';
