@@ -1791,10 +1791,12 @@ function relDay(d) {
   const n = Math.round((b - a) / 86400000);
   return n === 0 ? '' : n === 1 ? '明天 ' : n === -1 ? '昨天 ' : (d.getMonth() + 1) + '/' + d.getDate() + ' ';
 }
+// the next h:00 after the time being viewed (keeps a date the user picked)
 function nextClock(h) {
-  const d = new Date(); d.setSeconds(0, 0); d.setMinutes(0);
+  const base = state.live ? new Date() : new Date(state.time);
+  const d = new Date(base); d.setSeconds(0, 0); d.setMinutes(0);
   d.setHours(h % 24);
-  if (d <= new Date()) d.setDate(d.getDate() + 1);
+  if (state.live ? d <= base : d < base) d.setDate(d.getDate() + 1);
   return d;
 }
 
@@ -2327,6 +2329,8 @@ function updateTimeUI() {
   $('#liveDot').classList.toggle('off', !state.live);
   $('#timeBtn').setAttribute('aria-label', (state.live ? '現在時間 ' : '模擬時間 ') + longDT(state.time) + '，點一下調整');
   const ck = $('#clockText'); if (ck) ck.textContent = longDT(state.time) + (state.live ? '　現在' : '');
+  const di = $('#dateInput');
+  if (di && document.activeElement !== di) di.value = state.time.getFullYear() + '-' + pad(state.time.getMonth() + 1) + '-' + pad(state.time.getDate());
   if (!state.playing) updateSummary();
 }
 function updateSummary() {
