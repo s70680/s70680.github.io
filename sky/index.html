@@ -1022,7 +1022,7 @@ function layout() {
   if (state.view.dome) state.view.fov = domeFov;
   state.view.fov = clamp(state.view.fov, MIN_FOV, domeFov * 1.12);
 }
-const sensor = { on: false, got: false, abs: false, c: null, u: null, r: null, offset: null, timer: 0, warned: false };
+const sensor = { on: false, got: false, seen: false, abs: false, c: null, u: null, r: null, offset: null, timer: 0, warned: false };
 function setBasis() {
   if (sensor.on && sensor.c) {
     V.c = sensor.c; V.u = sensor.u; V.r = sensor.r;
@@ -1664,6 +1664,7 @@ function deviceAxes(a, b, g) {
 const enuToHor = (v) => [v[1], -v[0], v[2]];
 function onOrient(e) {
   if (!sensor.on || e.alpha == null || e.beta == null || e.gamma == null) return;
+  sensor.seen = true;
   const isAbs = e.type === 'deviceorientationabsolute' || e.absolute === true;
   const iosHeading = typeof e.webkitCompassHeading === 'number' && isFinite(e.webkitCompassHeading) ? e.webkitCompassHeading : null;
   if (isAbs) sensor.abs = true;
@@ -1710,7 +1711,7 @@ function onOrient(e) {
 function startSensor() {
   const begin = () => {
     hideHint();
-    Object.assign(sensor, { on: true, got: false, abs: false, c: null, u: null, r: null, offset: null, warned: false, hinted: false });
+    Object.assign(sensor, { on: true, got: false, seen: false, abs: false, c: null, u: null, r: null, offset: null, warned: false, hinted: false });
     window.addEventListener('deviceorientationabsolute', onOrient, true);
     window.addEventListener('deviceorientation', onOrient, true);
     anim = null;
@@ -1719,7 +1720,12 @@ function startSensor() {
     $('#btnSensor').setAttribute('aria-pressed', 'true');
     toast('把手機舉向天空，星圖會跟著轉');
     clearTimeout(sensor.timer);
-    sensor.timer = setTimeout(() => { if (sensor.on && !sensor.got) { stopSensor(); toast('收不到方向感測資料，請確認手機有陀螺儀與指南針'); } }, 6000);
+    sensor.timer = setTimeout(function check() {
+      if (!sensor.on || sensor.got) return;
+      // data arrives but the iOS compass is still waiting for calibration (phone held up at the sky): keep waiting
+      if (sensor.seen && !sensor.abs) { toast('先把手機像平常看螢幕那樣拿著一下，讓指南針校正'); sensor.timer = setTimeout(check, 6000); return; }
+      stopSensor(); toast('收不到方向感測資料，請確認手機有陀螺儀與指南針');
+    }, 6000);
     requestWake();
     layout(); requestRender();
   };
