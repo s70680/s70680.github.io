@@ -1,5 +1,5 @@
 // 頭頂星空 service worker: works offline after the first visit.
-const VERSION = 'v3-2026-10-04';
+const VERSION = 'v4-2026-10-04';
 const CORE_CACHE = 'toudingxingkong-core-' + VERSION;
 const FONT_CACHE = 'toudingxingkong-fonts';
 const CORE = [
@@ -38,10 +38,15 @@ self.addEventListener('fetch', (event) => {
       // Only the app itself is stored as ./index.html (privacy.html / licenses.html keep their own entries).
       const isApp = /\/(index\.html)?$/.test(url.pathname);
       const key = isApp ? './index.html' : req;
+      const cached = () => caches.match(key, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html'));
       event.respondWith(
         fetch(req)
-          .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CORE_CACHE).then((c) => c.put(key, copy)); } return res; })
-          .catch(() => caches.match(key, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html')))
+          .then((res) => {
+            if (res.ok) { const copy = res.clone(); caches.open(CORE_CACHE).then((c) => c.put(key, copy)); }
+            // server error (e.g. GitHub Pages outage): show the cached copy instead of an error page
+            return res.status >= 500 ? cached().then((hit) => hit || res) : res;
+          })
+          .catch(cached)
       );
       return;
     }
