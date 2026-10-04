@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
         let done = false;
         const use = (r) => { if (!done && r) { done = true; resolve(r); } };
         // weak signal (e.g. on a mountain): after 4 s show the cached copy; the new version is used next time
-        const timer = setTimeout(() => cached().then(use), 4000);
+        const timer = setTimeout(() => caches.match(key, { ignoreSearch: true }).then(use), 4000);
         net
           // server error (e.g. GitHub Pages outage): show the cached copy instead of an error page
           .then((res) => (res.status >= 500 ? cached().then((hit) => hit || res) : res))
