@@ -1826,15 +1826,16 @@ function fixedEvents(raDeg, decDeg) {
   }
   return out;
 }
-function eventLine(ev) {
-  if (ev.never) return '在你的位置不會升到地平線上';
+// who: subject of the never/always notes (constellation cards use the figure's centre point)
+function eventLine(ev, who) {
+  if (ev.never) return (who || '') + '在你的位置不會升到地平線上';
   const items = [];
   if (ev.rise) items.push([ev.rise, '從' + dirName(ev.riseAz) + '方升起']);
   if (ev.transit) items.push([ev.transit, '最高（' + Math.round(ev.transitAlt) + '°）']);
   if (ev.set) items.push([ev.set, '往' + dirName(ev.setAz) + '方落下']);
   items.sort((p, q) => p[0] - q[0]);
   const s = items.map(([t, w]) => '<span class="mono">' + relDay(t) + hhmm(t) + '</span> ' + w).join('<br>');
-  return ev.always ? s + '<br>整天都在地平線上（不會落下）' : s;
+  return ev.always ? s + '<br>' + (who || '') + '整天都在地平線上（不會落下）' : s;
 }
 function bodyEvents(id) {
   const ev = {};
@@ -1920,7 +1921,7 @@ function conHTML(c) {
   h += '<p class="subtitle">' + esc(c.latin) + ' · <span class="mono">' + c.ab + '</span></p>';
   h += conStatusHTML(c);
   h += '<dl class="facts">';
-  if (vis !== 'never') h += '<dt>接下來</dt><dd>' + eventLine(fixedEvents(ra, dec)) + '</dd>';
+  if (vis !== 'never') h += '<dt>接下來</dt><dd>' + eventLine(fixedEvents(ra, dec), vis === 'always' ? '' : '星座中心') + '</dd>';
   h += '<dt>最佳觀賞</dt><dd>' + season.text + '（' + season.season + '星座）</dd>';
   h += '<dt>在你這裡</dt><dd>' + visText + '</dd>';
   if (bright) h += '<dt>亮星</dt><dd>' + bright + '</dd>';
