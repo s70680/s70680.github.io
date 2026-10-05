@@ -117,6 +117,8 @@ Questions or suggestions: https://github.com/s70680/s70680.github.io/issues
 
 平板截圖不是必填，但圖像流程已提供：`store/graphics/tablet-7in/`（7 吋平板）與 `store/graphics/tablet-10in/`（10 吋平板），建議一併上傳。各資料夾內的 `raw/` 是原始截圖，上傳時使用資料夾第一層的檔案。
 
+圖示以外的圖（含連結預覽圖 `sky/og-image.png`）都由 `tools/store-graphics/build_store_graphics.py` 從 App 截圖產生，App 畫面有改時重跑一次即可（說明見 [`tools/store-graphics/README.md`](../tools/store-graphics/README.md)）。2026-10-05 已用新的銀河資料重新產生。
+
 ## 撰寫原則（已遵守，日後修改時也請注意）
 
 - 目標年齡層選 13 歲以上時，商店文字不要寫「適合小朋友／兒童」，以免被認定「無意間吸引兒童」而套用家庭政策。

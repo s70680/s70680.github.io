@@ -81,6 +81,8 @@ Play Console →「發布商品資訊」→「主要商品詳情」：文字全�
 | 主題圖片 | `store/graphics/feature-graphic.png` | 1024×500，JPEG 或 24 位元 PNG（無透明） |
 | 手機螢幕截圖 | `store/graphics/phone/` | 2～8 張，JPEG 或 24 位元 PNG，邊長 320～3840 px，長邊 ≤ 短邊 2 倍 |
 
+上傳各資料夾第一層的檔案（`raw/` 是沒有標題的原始截圖）。圖示以外的圖都由 [`tools/store-graphics/`](../tools/store-graphics/README.md) 從 App 截圖產生，2026-10-05 已用新的銀河資料重新產生；App 畫面再改時重跑即可。
+
 來源：[新增預覽素材](https://support.google.com/googleplay/android-developer/answer/9866151)
 
 「商店設定」：類別選 **教育**；聯絡資訊填電子郵件（必填、會公開）與網站 https://s70680.github.io/sky/ 。
@@ -314,5 +316,6 @@ Google 的定義：
 1. 來源：ESO 的「The Milky Way panorama」（[eso0932a](https://www.eso.org/public/images/eso0932a/)，Credit: ESO/S. Brunier），依 [ESO 使用條款](https://www.eso.org/public/copyright/)採 CC BY 4.0。頁面上「因版權原因無法提供 8 億像素原圖」只是說明原始超大圖要向攝影者索取，ESO 發布的 6000 × 3000 版本本身沒有另外註明例外。
 2. 做法：`tools/milkyway/build_milkyway.py` 下載照片（固定版本、核對 SHA-256 與內嵌的 ESO 中繼資料）→ 用 App 自己的星表比對照片中的星點，量出照片座標框與銀河座標差 3.8°，先校正 → 移除星點、平滑 → 取樣在原本的 20,000 點 Fibonacci 格點上，各亮度等級的天空面積和舊資料相同 → 刪除與銀河盤面不相連的區塊（大小麥哲倫雲、M31、昴宿星團、獵戶座大星雲、照片中的行星）。說明與驗證數字在 `tools/milkyway/README.md`。
 3. 標示：licenses.html、NOTICE.md、README、「圖層」設定的說明文字與商店完整說明都已加上 ESO/S. Brunier 與 CC BY 4.0。
+4. 圖片：上架截圖、主題圖片與連結預覽圖（`sky/og-image.png`）都已用新銀河重新產生（`tools/store-graphics/`），不再出現舊的銀河輪廓。
 
 先前建議的 Gaia DR3 沒有採用：Gaia 檔案庫資料實際採 **CC BY-NC 3.0 IGO**，商業使用前要先向 ESA 申請授權（[Gaia 授權頁](https://www.cosmos.esa.int/web/gaia-users/license)、[ESDC 條款](https://www.cosmos.esa.int/web/esdc/terms-and-conditions)）；ESA 對外發布的 Gaia 全天圖雖標示 CC BY-SA 3.0 IGO，但底層資料的非商業條款容易引起爭議，所以避開。
