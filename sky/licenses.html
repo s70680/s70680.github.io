@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080C1F">
 <title>資料來源與授權｜頭頂星空</title>
-<meta name="description" content="頭頂星空使用的第三方程式、星表資料與字型的來源與授權條文。">
+<meta name="description" content="頭頂星空使用的第三方程式、星表資料、銀河資料與字型的來源與授權條文。">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <style>
 :root { color-scheme: dark; --bg: #080C1F; --text: #ECE8DD; --muted: #9AA3BF; --gold: #D9B26A; --hair: rgba(236,232,221,.12); }
@@ -28,7 +28,7 @@ pre { white-space: pre-wrap; word-break: break-word; font: 12.5px/1.55 "IBM Plex
 <main>
 <a href="./">← 回到星空</a>
 <h1>資料來源與授權</h1>
-<p class="meta">Third-party notices · 最後更新 2026-09-29</p>
+<p class="meta">Third-party notices · 最後更新 2026-10-05</p>
 <p>頭頂星空的程式與中文介紹由本專案撰寫。以下是 App 內含或使用的第三方元件、資料與字型，以及它們的授權。感謝這些作者與機構公開分享成果。</p>
 
 <h2>天體位置計算：Astronomy Engine</h2>
@@ -55,14 +55,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.</pre></details>
 
-<h2>星表、星座連線、標籤位置與銀河：d3-celestial</h2>
-<p>© 2015 Olaf Frohn，BSD 3-Clause License。<a href="https://github.com/ofrohn/d3-celestial">github.com/ofrohn/d3-celestial</a>。App 內的亮星位置／星等／色指數、星座連線、星座名稱位置與等級、銀河輪廓，都是由 d3-celestial 的資料檔轉換而來。d3-celestial 註明的原始來源：</p>
+<h2>星表、星座連線與標籤位置：d3-celestial</h2>
+<p>© 2015 Olaf Frohn，BSD 3-Clause License。<a href="https://github.com/ofrohn/d3-celestial">github.com/ofrohn/d3-celestial</a>。App 內的亮星位置／星等／色指數、星座連線、星座名稱位置與等級、星座邊界，都是由 d3-celestial 的資料檔轉換而來。d3-celestial 註明的原始來源：</p>
 <ul>
 <li>恆星：XHIP — An Extended Hipparcos Compilation（Anderson &amp; Francis 2012），<a href="https://cdsarc.cds.unistra.fr/viz-bin/cat/V/137D">CDS/VizieR V/137D</a>；Hipparcos 星表 © ESA。</li>
 <li>星名與編號：Kostjuk 2002（VizieR IV/27A）等交叉索引，IAU 恆星名稱。</li>
 <li>星座連線與名稱位置：<a href="https://www.iau.org/public/themes/constellations/">IAU</a> 星座資料，並經 Olaf Frohn 修改。</li>
 <li>星座邊界：Davenhall &amp; Leggett 1989，Catalogue of Constellation Boundary Data，<a href="https://cdsarc.cds.unistra.fr/viz-bin/cat/VI/49">CDS/VizieR VI/49</a>。</li>
-<li>銀河輪廓：Jose R. Vieira, Milky Way Outline Catalog（SkyMap 附加資料）。</li>
 </ul>
 <details><summary>BSD 3-Clause License 全文</summary><pre>Copyright (c) 2015, Olaf Frohn
 All rights reserved.
@@ -76,6 +75,12 @@ Redistribution and use in source and binary forms, with or without modification,
 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</pre></details>
+
+<h2>銀河：ESO 銀河全景照片</h2>
+<p>App 的銀河圖層，是由歐洲南方天文台（ESO）公開的照片「The Milky Way panorama」（<a href="https://www.eso.org/public/images/eso0932a/">eso0932a</a>）計算產生。</p>
+<p>Credit: <strong>ESO/S. Brunier</strong></p>
+<p>授權：<a href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">創用 CC 姓名標示 4.0 國際（CC BY 4.0）</a>，見 ESO 的<a href="https://www.eso.org/public/copyright/">使用條款</a>。</p>
+<p>App 內沒有這張照片本身，只有由它改作而成的亮度點位：移除星點、扣除天空背景、平滑後分成 5 個亮度等級，取樣成約 3,400 個點；並刪除與銀河盤面不相連的區塊（例如大、小麥哲倫雲、仙女座星系、昴宿星團、獵戶座大星雲，以及照片中的一顆行星）。做法與程式見 <a href="https://github.com/s70680/s70680.github.io/tree/main/tools/milkyway">tools/milkyway</a>。ESO 與攝影者沒有參與本 App，也不代表他們認可本 App。</p>
 
 <h2>中國傳統星名：Stellarium 星空文化資料</h2>
 <p>App 顯示的中國傳統星名（例如「天狼」「參宿七」「河鼓二」）取自 <a href="https://github.com/Stellarium/stellarium/tree/master/skycultures/chinese">Stellarium「Chinese」星空文化</a>（經 d3-celestial 的 <code>starnames.cn.json</code> 整理，並轉為繁體字）。原作者：Karrie Berglund（Digitalis Education Solutions, Inc.）；Sun Shuwei 依伊世同《中西對照恆星圖表 1950.0》增補。授權：<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant">創用 CC 姓名標示－相同方式分享 4.0 國際（CC BY-SA 4.0）</a>。</p>
