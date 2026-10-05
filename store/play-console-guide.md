@@ -246,7 +246,7 @@ Google 的定義：
 - TWA 的做法：網頁透過 **Digital Goods API**（查商品與購買狀態）＋ **Payment Request API**（以 Google Play 為付款方式）。需求：Chrome 101 以上、Bubblewrap 1.8.2 以上並在 `twa-manifest.json` 開啟 `playBilling`（及 `alphaDependencies`）、有效的 Google 付款商家帳戶、App 已在任一測試軌道上架。來源：[在 TWA 使用 Play 結帳收款](https://developer.chrome.com/docs/android/trusted-web-activity/receive-payments-play-billing)
 - 購買後必須由**後端伺服器**確認（acknowledge），否則 3 天後會自動退款——這代表需要一個伺服器，屬於「收集資料」，要同步更新 privacy.html 與 Data safety。
 - App 本身維持**免費**，用內購解鎖功能；開始營利後，Google 會公開你的**完整地址**（見第 0 節）。
-- 授權面：開始收費前，建議先處理下方第 13 節的**銀河輪廓資料來源**問題，並保留 CC BY-SA 星名資料的標示。
+- 授權面：原本授權不明的銀河輪廓資料已在 2026-10-05 換成由 ESO 銀河全景照片（CC BY 4.0）產生的資料（見第 13 節）；收費後仍要保留 ESO/S. Brunier 的出處標示與 CC BY-SA 星名資料的標示。
 
 ---
 
@@ -289,7 +289,7 @@ Google 的定義：
 
 ---
 
-## 13. 內嵌資料的授權稽核（2026-09-29）
+## 13. 內嵌資料的授權稽核（2026-09-29；銀河資料 2026-10-05 更新）
 
 > 不是法律意見；依各來源公開的授權文字整理。
 
@@ -301,20 +301,18 @@ Google 的定義：
 | **中國傳統星名** `STAR_INFO` 第 4 欄（2,513 筆，如「參宿七」） | 星名標籤與介紹 | d3-celestial `starnames.cn.json` ← [Stellarium「Chinese」星空文化](https://github.com/Stellarium/stellarium/tree/master/skycultures/chinese) | **CC BY-SA 4.0**（Stellarium 官方 description.md／info.ini 明載） | ✅ 可以（CC BY-SA 允許商業使用） | 必須**姓名標示**＋**相同方式分享**：已在 licenses.html、NOTICE.md 標示作者與授權，並聲明這份改作星名表以 CC BY-SA 4.0 提供。比對結果：2,468／2,513 筆與 Stellarium 現行資料一致，其餘為簡繁轉換差異（斗／鬥）。 |
 | 星座連線 `CON_LINES`、名稱位置 `CON_LABELS`、等級 `CON_RANK` | 星座連線與標籤 | d3-celestial `constellations*.json` ← IAU 星座資料，經 Olaf Frohn 修改 | BSD-3-Clause | ✅ 可以 | 無（已標示） |
 | 星座邊界 `CON_BOUNDS` | 星座範圍（點選判定與邊界線） | Davenhall & Leggett 1989（[VizieR VI/49](https://cdsarc.cds.unistra.fr/viz-bin/cat/VI/49)），經 d3-celestial | BSD-3-Clause＋CDS 出處 | ✅ 可以 | 無（已標示） |
-| **銀河輪廓 `MW_DATA`**（3,388 點、5 個亮度等級） | 銀河圖層 | d3-celestial `mw.json` ← Jose R. Vieira「Milky Way Outline Catalog」（SkyMap Pro 6 附加資料）；輪廓 2–5 由 Axel Mellinger 的銀河全景照片描出 | **原作者未聲明任何授權**。d3-celestial 作者在 [issue #160](https://github.com/ofrohn/d3-celestial/issues/160) 表示 2014 年聯絡不到原作者，僅「假設為公共領域」；Mellinger 全景照片的[商業使用需付授權費](https://www.milkywaysky.com/licenses.html) | ⚠️ **不確定**（非 BSD 可以涵蓋；上游權利鏈不明） | 建議在**開始收費前**改用明確開放授權的資料重新產生（見下） |
+| **銀河 `MW_DATA`**（3,388 點、5 個亮度等級；2026-10-05 起） | 銀河圖層 | ESO「[The Milky Way panorama](https://www.eso.org/public/images/eso0932a/)」（eso0932a，Credit: ESO/S. Brunier），由 `tools/milkyway/build_milkyway.py` 計算產生（App 內不含照片本身） | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)（[ESO 使用條款](https://www.eso.org/public/copyright/)：網站上的圖片除另有註明外都採 CC BY 4.0） | ✅ 可以（CC BY 允許商業使用） | 必須**姓名標示**、標明有改作、不得暗示 ESO 背書：licenses.html、NOTICE.md 與「圖層」設定的說明文字都已加入 ESO/S. Brunier 與授權連結 |
+| ~~銀河輪廓（舊）~~ | 2026-10-05 前的銀河圖層 | d3-celestial `mw.json` ← Jose R. Vieira「Milky Way Outline Catalog」；輪廓 2–5 由 Axel Mellinger 的銀河全景照片描出 | 原作者未聲明任何授權（[issue #160](https://github.com/ofrohn/d3-celestial/issues/160)）；Mellinger 全景照片的[商業使用需付授權費](https://www.milkywaysky.com/licenses.html) | ⚠️ 不確定 | **已移除**，由上一列取代 |
 | 深空天體清單 `DSO`（27 筆） | 星雲星團圖層 | 本專案整理（座標為科學事實） | — | ✅ 可以 | 無 |
 | 中文介紹（星座、亮星、行星、深空天體） | 介紹文字 | 本專案撰寫 | 作者自有 | ✅ 可以 | 無 |
 | 字型 Noto Serif TC、IBM Plex Mono | 介面文字 | Google Fonts | SIL OFL 1.1 | ✅ 可以（執行時從 Google Fonts 載入，未打包） | licenses.html 已附 OFL 全文 |
 
-### 銀河輪廓的建議處理（留給主要開發者）
+### 銀河資料的處理結果（2026-10-05）
 
-風險評估：免費發布時風險低（d3-celestial 已公開散布多年、只是點位座標），但**權利鏈不完整**，而且日後收費時風險提高。最安全的做法是用明確允許商業使用的星表**自行重新產生**銀河亮度分布，取代 `MW_DATA`：
+原本的銀河輪廓權利鏈不完整，已改用**明確允許商業使用**的來源重新產生，渲染程式與資料格式都沒有改：
 
-1. 資料來源：**Gaia DR3**（ESA 的 Gaia 資料採 [CC BY-SA 3.0 IGO](https://www.esa.int/Services/Creative_Commons_Attribution-ShareAlike_3.0_IGO_CC_BY-SA_3.0_IGO_Licence) 類型授權；使用前請再到 [Gaia 授權頁](https://www.cosmos.esa.int/web/gaia-users/license) 確認，本次環境無法開啟該頁）或 **Tycho-2**（CDS/VizieR I/259，註明出處即可）。以 Gaia 為例，從 Gaia Archive 下載全天星數密度（例如 HEALPix level 6 的 G<18 星數統計，或 `gaiadr3.gaia_source` 的 `healpix` 分組計數）。
-2. 以銀河座標計算每個 HEALPix 格子的星數密度 → 取對數 → 平滑（約 2°）→ 依百分位數切成 5 個亮度等級。
-3. 只保留等級 ≥1 的格子中心，轉回赤經赤緯，輸出與目前相同的 `[ra, dec, level, ...]` 陣列格式，取代 `index.html` 的 `const MW_DATA=[...]` 一行（渲染程式不用改）。
-4. 在 licenses.html 把銀河來源改為「Gaia DR3（ESA/Gaia/DPAC，CC BY-SA 3.0 IGO）」並標示改作以相同授權提供。
-   - 替代方案（全程只需 GitHub 可連線的來源）：用 d3-celestial 的 `stars.14.json`（與目前星表同屬 BSD 資料鏈；使用前須先確認其上游星表來源）計算星數密度，同樣輸出 5 個等級。
-5. 驗證：無瀏覽器環境可用 Python 把新舊點位畫成同一張全天圖（matplotlib）比對形狀；再到手機上目視確認。
+1. 來源：ESO 的「The Milky Way panorama」（[eso0932a](https://www.eso.org/public/images/eso0932a/)，Credit: ESO/S. Brunier），依 [ESO 使用條款](https://www.eso.org/public/copyright/)採 CC BY 4.0。頁面上「因版權原因無法提供 8 億像素原圖」只是說明原始超大圖要向攝影者索取，ESO 發布的 6000 × 3000 版本本身沒有另外註明例外。
+2. 做法：`tools/milkyway/build_milkyway.py` 下載照片（固定版本、核對 SHA-256 與內嵌的 ESO 中繼資料）→ 用 App 自己的星表比對照片中的星點，量出照片座標框與銀河座標差 3.8°，先校正 → 移除星點、平滑 → 取樣在原本的 20,000 點 Fibonacci 格點上，各亮度等級的天空面積和舊資料相同 → 刪除與銀河盤面不相連的區塊（大小麥哲倫雲、M31、昴宿星團、獵戶座大星雲、照片中的行星）。說明與驗證數字在 `tools/milkyway/README.md`。
+3. 標示：licenses.html、NOTICE.md、README、「圖層」設定的說明文字與商店完整說明都已加上 ESO/S. Brunier 與 CC BY 4.0。
 
-此工作需要下載 Gaia 資料（目前的 shell 環境無法連到 ESA），因此這次沒有執行。
+先前建議的 Gaia DR3 沒有採用：Gaia 檔案庫資料實際採 **CC BY-NC 3.0 IGO**，商業使用前要先向 ESA 申請授權（[Gaia 授權頁](https://www.cosmos.esa.int/web/gaia-users/license)、[ESDC 條款](https://www.cosmos.esa.int/web/esdc/terms-and-conditions)）；ESA 對外發布的 Gaia 全天圖雖標示 CC BY-SA 3.0 IGO，但底層資料的非商業條款容易引起爭議，所以避開。

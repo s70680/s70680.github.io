@@ -32,7 +32,7 @@
 依你的位置與時間，畫出頭頂的星空、行星、銀河與 88 星座，點一下就有中文介紹。
 ```
 
-### 完整說明（896 / 4000 字元）
+### 完整說明（944 / 4000 字元）
 
 ```
 抬頭看到一顆很亮的星，想知道它叫什麼？頭頂星空依照你所在的位置與現在的時間，即時畫出此刻天上的星星、行星、月亮與銀河，點一下星座或星星，就有淺顯易懂的中文介紹。
@@ -59,7 +59,7 @@
 不需要註冊，沒有廣告，也沒有任何分析或追蹤工具。位置與方向感測資料只在手機上用來計算星空，不會傳送給開發者。
 
 【資料來源】
-天體位置以開源的 Astronomy Engine 計算；星表、星座連線與銀河資料來自 d3-celestial（依巴谷星表等），中國傳統星名來自 Stellarium 星空文化資料。完整授權說明可在 App 內「圖層」→「資料來源與授權」查看。
+天體位置以開源的 Astronomy Engine 計算；星表與星座連線資料來自 d3-celestial（依巴谷星表等），銀河依歐洲南方天文台（ESO）的銀河全景照片產生（ESO/S. Brunier，CC BY 4.0），中國傳統星名來自 Stellarium 星空文化資料。完整授權說明可在 App 內「圖層」→「資料來源與授權」查看。
 
 有任何問題或建議，歡迎到 GitHub 留言：https://github.com/s70680/s70680.github.io/issues
 ```
@@ -80,7 +80,7 @@ Sky Above: Star Map (Chinese)
 See the stars, planets, Milky Way and 88 constellations above you, in Chinese.
 ```
 
-### Full description（1797 / 4000）
+### Full description（1880 / 4000）
 
 ```
 Wondering what that bright star is? 頭頂星空 (Sky Above) draws the sky for your location and the current time: stars, planets, the Moon and the Milky Way. Tap any constellation or star to read a short introduction. The app's interface and descriptions are in Traditional Chinese (Taiwan).
@@ -102,7 +102,7 @@ PRIVACY
 No sign-up, no ads, no analytics or tracking. Location and motion-sensor data are used only on your device to draw the sky and are never sent to the developer.
 
 DATA SOURCES
-Positions are computed with the open-source Astronomy Engine. Star, constellation and Milky Way data come from d3-celestial (Hipparcos and other catalogues); traditional Chinese star names come from the Stellarium sky-culture data. Full notices are available in the app.
+Positions are computed with the open-source Astronomy Engine. Star and constellation data come from d3-celestial (Hipparcos and other catalogues); the Milky Way is generated from ESO's Milky Way panorama (credit: ESO/S. Brunier, CC BY 4.0); traditional Chinese star names come from the Stellarium sky-culture data. Full notices are available in the app.
 
 Questions or suggestions: https://github.com/s70680/s70680.github.io/issues
 ```

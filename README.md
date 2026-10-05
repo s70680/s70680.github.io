@@ -23,7 +23,8 @@
 ## 資料與授權
 
 - 天體位置計算：[Astronomy Engine](https://github.com/cosinekitty/astronomy)（MIT License，© Don Cross）
-- 星表、星座連線、星座邊界、名稱位置、銀河輪廓：[d3-celestial](https://github.com/ofrohn/d3-celestial) 整理的資料（BSD 3-Clause License，© Olaf Frohn），原始來源包括 Hipparcos／XHIP 星表（CDS/VizieR）、IAU 星座資料、Davenhall & Leggett 星座邊界、Jose R. Vieira 的銀河輪廓表
+- 星表、星座連線、星座邊界、名稱位置：[d3-celestial](https://github.com/ofrohn/d3-celestial) 整理的資料（BSD 3-Clause License，© Olaf Frohn），原始來源包括 Hipparcos／XHIP 星表（CDS/VizieR）、IAU 星座資料、Davenhall & Leggett 星座邊界
+- 銀河：由 ESO 的銀河全景照片「[The Milky Way panorama](https://www.eso.org/public/images/eso0932a/)」計算產生（Credit: ESO/S. Brunier，**CC BY 4.0**），產生方法與程式見 [tools/milkyway/](tools/milkyway/)
 - 中國傳統星名：[Stellarium「Chinese」星空文化](https://github.com/Stellarium/stellarium/tree/master/skycultures/chinese)（經 d3-celestial 整理，**CC BY-SA 4.0**），本專案轉為繁體字，這份改作的星名資料同樣以 CC BY-SA 4.0 提供
 - 字型：Noto Serif TC、IBM Plex Mono（SIL Open Font License 1.1，透過 Google Fonts 載入）
 - 星座、亮星、行星與深空天體的中文介紹為本專案撰寫

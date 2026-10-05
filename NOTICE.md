@@ -29,10 +29,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## d3-celestial (star, constellation and Milky Way data)
+## d3-celestial (star and constellation data)
 https://github.com/ofrohn/d3-celestial
 
-Embedded, converted from d3-celestial data files: star positions/magnitudes/colour indices (stars.6.json; XHIP, Anderson & Francis 2012, CDS/VizieR V/137D; Hipparcos © ESA), constellation lines, label positions and ranks (IAU data as modified by Olaf Frohn), constellation boundaries (Davenhall & Leggett 1989, CDS/VizieR VI/49) and Milky Way outlines (mw.json; Jose R. Vieira, Milky Way Outline Catalog — no licence was stated by its author, see https://github.com/ofrohn/d3-celestial/issues/160).
+Embedded, converted from d3-celestial data files: star positions/magnitudes/colour indices (stars.6.json; XHIP, Anderson & Francis 2012, CDS/VizieR V/137D; Hipparcos © ESA), constellation lines, label positions and ranks (IAU data as modified by Olaf Frohn), and constellation boundaries (Davenhall & Leggett 1989, CDS/VizieR VI/49).
 
 ```
 Copyright (c) 2015, Olaf Frohn
@@ -48,6 +48,17 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+## ESO "The Milky Way panorama" (Milky Way layer)
+https://www.eso.org/public/images/eso0932a/
+
+Credit: ESO/S. Brunier
+
+Licence: Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/ (ESO's terms: https://www.eso.org/public/copyright/).
+
+The Milky Way layer (`MW_DATA` in `sky/index.html`) is derived from this image by `tools/milkyway/build_milkyway.py`: stars removed, sky background subtracted, smoothed, cut into five brightness levels and sampled at about 3,400 points; patches not connected to the Galactic plane (for example the Magellanic Clouds, M31, the Pleiades, the Orion Nebula and a planet that appears in the photograph) were removed. The image itself is not included in the app or in this repository. ESO and the photographer are not affiliated with this app and do not endorse it.
+
+This layer replaces the Milky Way outlines from d3-celestial's mw.json (Jose R. Vieira, Milky Way Outline Catalog; no licence was stated by its author, see https://github.com/ofrohn/d3-celestial/issues/160), which the app embedded until 2026-10 and which are no longer included.
 
 ## Stellarium "Chinese" sky culture (traditional Chinese star names)
 https://github.com/Stellarium/stellarium/tree/master/skycultures/chinese
