@@ -34,4 +34,4 @@ App 內的「顯示設定」底部可開啟：
 - [資料來源與授權](https://s70680.github.io/sky/licenses.html)（完整授權條文）
 - [隱私權政策](https://s70680.github.io/sky/privacy.html)（位置與感測器只在手機上使用，不收集任何個人資料）
 
-詳細授權條文也見 [NOTICE.md](NOTICE.md)。上架 Google Play 的文件在 [store/](store/)。
+詳細授權條文也見 [NOTICE.md](NOTICE.md)。上架 Google Play 的文件在 [store/](store/)，上架圖片由 [tools/store-graphics/](tools/store-graphics/) 從 App 截圖產生。
