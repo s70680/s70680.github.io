@@ -1,11 +1,12 @@
 // 頭頂星空 service worker: works offline after the first visit.
-const VERSION = 'v7-2026-10-05';
+const VERSION = 'v8-2026-10-13';
 const CORE_CACHE = 'toudingxingkong-core-' + VERSION;
 const FONT_CACHE = 'toudingxingkong-fonts';
 const CORE = [
   './',
   './index.html',
   './astronomy.browser.min.js',
+  './events.js',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
