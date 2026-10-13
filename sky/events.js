@@ -107,7 +107,7 @@ function list(A, lat, lon, from, days) {
       add({
         type: 'eclipse', id: 'lun-' + pk.date.toISOString().slice(0, 10), title: KIND[le.kind], at: pk.date, viewAt: pk.date,
         dtStart: at(-le.sd_penum), dtEnd: at(le.sd_penum), visible: anyUp,
-        desc: (le.kind === 'penumbral' ? '月亮只進入地球的半影，亮度變暗不明顯。' : le.kind === 'total' ? '月亮完全進入地球本影，會變成暗紅色的「血月」。' : '月亮一部分進入地球本影，看起來像被咬了一口。') + '食分 ' + (le.obscuration * 100).toFixed(0) + '%（本影遮住月面的比例）。',
+        desc: (le.kind === 'penumbral' ? '月亮只進入地球的半影，亮度變暗不明顯。' : le.kind === 'total' ? '月亮完全進入地球本影，會變成暗紅色的「血月」。' : '月亮一部分進入地球本影，看起來像被咬了一口。') + (le.kind === 'penumbral' ? '' : '本影遮住月面約 ' + Math.round(le.obscuration * 100) + '%。'),
         note: vis + '。' + ph.map(([n, m]) => n + ' ' + hhmm(at(m))).join('、') + '。'
       });
       le = A.NextLunarEclipse(pk);
